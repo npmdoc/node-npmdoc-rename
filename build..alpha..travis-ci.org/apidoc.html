@@ -1,0 +1,359 @@
+<div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a
+
+        href="https://github.com/popomore/rename"
+
+    >rename (v1.0.4)</a>
+</h1>
+<h4>Rename files using some transformers.</h4>
+<div class="apidocSectionDiv"><a
+    href="#apidoc.tableOfContents"
+    id="apidoc.tableOfContents"
+><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.rename">module rename</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.rename.rename">
+            function <span class="apidocSignatureSpan"></span>rename
+            <span class="apidocSignatureSpan">(filepath, transformer)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.rename.parse">
+            function <span class="apidocSignatureSpan">rename.</span>parse
+            <span class="apidocSignatureSpan">(path)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.rename.stringify">
+            function <span class="apidocSignatureSpan">rename.</span>stringify
+            <span class="apidocSignatureSpan">(obj)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <span class="apidocSignatureSpan">object <span class="apidocSignatureSpan">rename.</span>util</span>
+
+        </li>
+
+    </ol></li>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.rename.util">module rename.util</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.rename.util.isFunction">
+            function <span class="apidocSignatureSpan">rename.util.</span>isFunction
+            <span class="apidocSignatureSpan">(arg)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.rename.util.isObject">
+            function <span class="apidocSignatureSpan">rename.util.</span>isObject
+            <span class="apidocSignatureSpan">(arg)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.rename.util.isString">
+            function <span class="apidocSignatureSpan">rename.util.</span>isString
+            <span class="apidocSignatureSpan">(arg)</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.rename" id="apidoc.module.rename">module rename</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.rename.rename" id="apidoc.element.rename.rename">
+        function <span class="apidocSignatureSpan"></span>rename
+        <span class="apidocSignatureSpan">(filepath, transformer)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function rename(filepath, transformer) {
+  var result;
+<span class="apidocCodeCommentSpan">  /*
+    Return a file object
+
+    {
+      dirname
+      basename
+      extname
+      origin
+    }
+  */
+</span>  var fileObj = parse(filepath);
+
+  if (!transformer) {
+    result = stringify(fileObj);
+    debug(&#x27;transform to %s with no transformer&#x27;, result);
+    return result;
+  }
+
+  /*
+    transformed object
+
+    {
+      dirname
+      prefix
+      basename
+      suffix
+      extname
+    }
+  */
+  var transformed = util.isFunction(transformer) ? transformer(fileObj) : transformer;
+
+  // rename it when transformer is string as a filepath
+  if (util.isString(transformed)) {
+    result = transformed || stringify(fileObj);
+    debug(&#x27;transform from %j to `%s` with %j&#x27;, fileObj, result, transformed);
+    return result;
+  }
+
+  if (!util.isObject(transformed)) {
+    throw new Error(&#x27;transformer should be string, function or object.&#x27;);
+  }
+
+  result = transform(fileObj, transformed);
+  debug(&#x27;transform from %j to `%s` with %j&#x27;, fileObj, result, transformed);
+  return result;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.rename.parse" id="apidoc.element.rename.parse">
+        function <span class="apidocSignatureSpan">rename.</span>parse
+        <span class="apidocSignatureSpan">(path)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function parse(path) {
+  assert(util.isString(path) || util.isObject(path),
+    &#x27;Argument should be string or object.&#x27;);
+
+  var orig = path;
+
+  if (util.isString(path)) {
+    path = toObject(path);
+  } else {
+    path.dirname = path.dirname || &#x27;&#x27;;
+    path.extname = path.extname || &#x27;&#x27;;
+    path.basename = path.basename || &#x27;&#x27;;
+    path.origin = path.origin || &#x27;&#x27;;
+  }
+
+  debug(&#x27;parse from %j to %j&#x27;, orig, path);
+  return path;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.rename.stringify" id="apidoc.element.rename.stringify">
+        function <span class="apidocSignatureSpan">rename.</span>stringify
+        <span class="apidocSignatureSpan">(obj)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function stringify(obj) {
+  assert(isObject(obj), &#x27;Argument should be object.&#x27;);
+
+  obj.dirname = obj.dirname || &#x27;.&#x27;;
+  obj.extname = obj.extname || &#x27;&#x27;;
+  obj.basename = obj.basename || &#x27;&#x27;;
+
+
+  var path = join(obj.dirname, obj.basename + obj.extname);
+  if (path === &#x27;.&#x27;) {
+    path = &#x27;&#x27;;
+  }
+  debug(&#x27;stringify to %s&#x27;, path);
+  return path;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+
+
+</div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.rename.util" id="apidoc.module.rename.util">module rename.util</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.rename.util.isFunction" id="apidoc.element.rename.util.isFunction">
+        function <span class="apidocSignatureSpan">rename.util.</span>isFunction
+        <span class="apidocSignatureSpan">(arg)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function isFunction(arg) {
+  return toString.call(arg) === &#x27;[object Function]&#x27;;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+    dirname
+    prefix
+    basename
+    suffix
+    extname
+  }
+*/
+var transformed = util.<span class="apidocCodeKeywordSpan">isFunction</span>(transformer) ? transformer(fileObj) : transformer;
+
+// rename it when transformer is string as a filepath
+if (util.isString(transformed)) {
+  result = transformed || stringify(fileObj);
+  debug(&#x27;transform from %j to `%s` with %j&#x27;, fileObj, result, transformed);
+  return result;
+}
+...</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.rename.util.isObject" id="apidoc.element.rename.util.isObject">
+        function <span class="apidocSignatureSpan">rename.util.</span>isObject
+        <span class="apidocSignatureSpan">(arg)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function isObject(arg) {
+  return toString.call(arg) === &#x27;[object Object]&#x27;;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+  // rename it when transformer is string as a filepath
+  if (util.isString(transformed)) {
+    result = transformed || stringify(fileObj);
+    debug(&#x27;transform from %j to `%s` with %j&#x27;, fileObj, result, transformed);
+    return result;
+  }
+
+  if (!util.<span class="apidocCodeKeywordSpan">isObject</span>(transformed)) {
+    throw new Error(&#x27;transformer should be string, function or object.&#x27;);
+  }
+
+  result = transform(fileObj, transformed);
+  debug(&#x27;transform from %j to `%s` with %j&#x27;, fileObj, result, transformed);
+  return result;
+}
+...</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.rename.util.isString" id="apidoc.element.rename.util.isString">
+        function <span class="apidocSignatureSpan">rename.util.</span>isString
+        <span class="apidocSignatureSpan">(arg)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function isString(arg) {
+  return toString.call(arg) === &#x27;[object String]&#x27;;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+    suffix
+    extname
+  }
+*/
+var transformed = util.isFunction(transformer) ? transformer(fileObj) : transformer;
+
+// rename it when transformer is string as a filepath
+if (util.<span class="apidocCodeKeywordSpan">isString</span>(transformed)) {
+  result = transformed || stringify(fileObj);
+  debug(&#x27;transform from %j to `%s` with %j&#x27;, fileObj, result, transformed);
+  return result;
+}
+
+if (!util.isObject(transformed)) {
+  throw new Error(&#x27;transformer should be string, function or object.&#x27;);
+...</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
